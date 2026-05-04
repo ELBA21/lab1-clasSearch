@@ -1,4 +1,4 @@
-# !/bin/bash
+#!/bin/bash
 
 echo "|== Iniciando ==|"
 # =================================
@@ -7,12 +7,14 @@ echo "|== Iniciando ==|"
 VPC_CIDR="10.0.0.0/16" 
 VPC_NAME="lab1"
 REGION="us-east-1" 
+export AWS_DEFAULT_REGION=$REGION # Para asegurar la region
+
 # =================================
 # SECCION 1: CREACION VPC
 # ================================
 echo "Creando VPC con rango ${VPC_CIDR}"
 # Creamos la VPC con el CIDR indicado previamente y guardamos su ID
-export VPC_ID=$(aws ec2 create-vpc --cidr-block $VPC_CIDR --region $REGION --query 'Vpc.VpcId' --output text)
+export VPC_ID=$(aws ec2 create-vpc --cidr-block $VPC_CIDR --query 'Vpc.VpcId' --output text)
 
 
 echo ". . ." #Sin el echo no me dejaba comentar
@@ -28,11 +30,11 @@ else
 fi
 
 # asignacion de nombre
-aws ec2 create-tags --resources $VPC_ID --region $REGION --tags Key=Name,Value=$VPC_NAME
+aws ec2 create-tags --resources $VPC_ID --tags Key=Name,Value=$VPC_NAME
 echo "$VPC_ID ahora se llama $VPC_NAME"
 
 # Permite asignacion de DNS,esto ayuda a identificar las maquinas de la VPC cambiando Ip por URL
-aws ec2 modify-vpc-attribute --vpc-id $VPC_ID --region $REGION --enable-dns-hostnames
+aws ec2 modify-vpc-attribute --vpc-id $VPC_ID --enable-dns-hostnames
 
 # ================================
 # SECCION 2: CREAR SUBNETS
@@ -62,5 +64,21 @@ fi
 
 
 # ================================
-# SECCION 2: CREAR IGW
+# SECCION 3: CREAR IGW
 # ================================
+echo "Iniciando creacion de Internet Gateway"
+export IGW_ID=$(aws ec2 create-internet-gateway --query 'InternetGateway.InternetGatewayId' --output text)
+
+if [ -z "$IGW_ID" ]; then
+    echo "ERROR: No se pudo crear el Internet Gateway"
+    exit 1
+
+else
+    echo "OK: Internet Gateway creado con ID: $IGW_ID"
+fi
+
+# Asignamos un nombre para el IGW, reciblo el de la vpc pero concateno '-IGW'
+aws ec2 create-tags --resources $IGW_ID --tags Key=Name,Value=${VPC_NAME}-IGW
+# Conectamos el IGW con la VPC
+aws ec2 attach-internet-gateway --internet-gateway-id $IGW_ID --vpc-id $VPC_ID
+
