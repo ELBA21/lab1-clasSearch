@@ -9,6 +9,8 @@ VPC_NAME="lab1"
 REGION="us-east-1" 
 export AWS_DEFAULT_REGION=$REGION # Para asegurar la region
 
+
+
 # =================================
 # SECCION 1: CREACION VPC
 # ================================
@@ -36,6 +38,8 @@ echo "$VPC_ID ahora se llama $VPC_NAME"
 # Permite asignacion de DNS,esto ayuda a identificar las maquinas de la VPC cambiando Ip por URL
 aws ec2 modify-vpc-attribute --vpc-id $VPC_ID --enable-dns-hostnames
 
+
+
 # ================================
 # SECCION 2: CREAR SUBNETS
 # ================================
@@ -49,6 +53,8 @@ if [ -z "$SUBNET_PUB" ]; then
 else
     echo "OK: SUBNET Publica creada con ID: $SUBNET_PUB"
 fi
+# Aprovecho que VPC_NAME es lab1 para asignar nombres de forma mas consistente
+aws create-tags --resources $SUBNET_PUB  --tags Key=Name,Value=${VPC_NAME}-Subnet-Pub
 # Asigna Ip publicas automaticamente
 aws ec2 modify-subnet-attribute --subnet-id $SUBNET_PUB --map-public-ip-on-launch
 
@@ -61,6 +67,9 @@ if [ -z "$SUBNET_PRIV" ]; then
 else
     echo "OK: SUBNET Privada creada con ID: $SUBNET_PRIV"
 fi
+# Lo del nombre de nuevo, pero ahora para la subnet privada
+aws create-tags --resources $SUBNET_PRIV  --tags Key=Name,Value=${VPC_NAME}-Subnet-Priv
+
 
 
 # ================================
@@ -82,3 +91,22 @@ aws ec2 create-tags --resources $IGW_ID --tags Key=Name,Value=${VPC_NAME}-IGW
 # Conectamos el IGW con la VPC
 aws ec2 attach-internet-gateway --internet-gateway-id $IGW_ID --vpc-id $VPC_ID
 
+
+
+# ================================
+# SECCION 4: Route Tables
+# ================================
+export RT_ID=$(aws ec2 create-route-table --vpc-id $VPC_ID --query 'RouteTable.RouteTableId' --output text)
+if [ -z "$RT_ID" ]; then
+    echo "ERROR: No se pudo crear el Route Table"
+    exit 1
+
+else
+    echo "OK: Route Table creado con ID: $RT_ID"
+fi
+# Me vuelvo a aprovechar de VPC_NAME para nombrar cosas, ahora el route-table
+awc ec2 create-tags --resources $RT_ID --tags Key=Name,Value=${VPC_NAME}-Public-RT
+# Damos acceso global (0.0.0.0/0) al internetgateway
+aws ec2 create-route --route-table-id $RT_ID --destination-cidr-block 0.0.0.0/0 --gateway-id $IGW_ID
+# Conectamos dicho acceso global a nuestra subnet publica
+aws ec2 associate-route-table --route-table-id $RT_ID --subnet-id $SUBNET_PUB
