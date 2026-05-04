@@ -96,6 +96,7 @@ aws ec2 attach-internet-gateway --internet-gateway-id $IGW_ID --vpc-id $VPC_ID
 # ================================
 # SECCION 4: Route Tables
 # ================================
+echo "Iniciando creacion de Route Tables"
 export RT_ID=$(aws ec2 create-route-table --vpc-id $VPC_ID --query 'RouteTable.RouteTableId' --output text)
 if [ -z "$RT_ID" ]; then
     echo "ERROR: No se pudo crear el Route Table"
@@ -105,8 +106,40 @@ else
     echo "OK: Route Table creado con ID: $RT_ID"
 fi
 # Me vuelvo a aprovechar de VPC_NAME para nombrar cosas, ahora el route-table
-awc ec2 create-tags --resources $RT_ID --tags Key=Name,Value=${VPC_NAME}-Public-RT
+aws ec2 create-tags --resources $RT_ID --tags Key=Name,Value=${VPC_NAME}-Public-RT
 # Damos acceso global (0.0.0.0/0) al internetgateway
 aws ec2 create-route --route-table-id $RT_ID --destination-cidr-block 0.0.0.0/0 --gateway-id $IGW_ID
 # Conectamos dicho acceso global a nuestra subnet publica
 aws ec2 associate-route-table --route-table-id $RT_ID --subnet-id $SUBNET_PUB
+
+
+
+# ================================
+# SECCION 5: Security Group e Instancia
+# # ================================
+
+# Creamos el security group'y guardamos su id
+export SG_ID=$(aws ec2 create-security-group --group-name sg-lab --description "lab SG" --vpc-id $VPC_ID --query 'GroupId' --output text)
+
+if [ -z "$SG_ID" ]; then
+    echo "ERROR: No se pudo crear el Security Group"
+    exit 1
+
+else
+    echo "OK:Security Group creado con ID: $SG_ID"
+fi
+# Abrimos el puerto 80 al internet
+aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 80 --cidr 0.0.0.0/0
+# Dejamos el puerto 22 disponible unicamente para nuestra Ip personal
+aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 22 --cidr $(curl -s ifconfig.me)/32 
+# Levantamos una instancia de t3.micro con Ubuntu server 26.04
+aws ec2 run-instances --image-id ami-091138d0f0d41ff90 --instance-type t3.micro --subnet-id $SUBNET_PUB --security-group-ids $SG_ID --associate-public-ip-address
+
+
+
+# SECCION: VERIFICAR!!!!!
+
+# Obtenemos la IP publica de la maquina y esperamos respuesta!
+export PUBLIC_IP=$(aws ec2 describe-instances --filters Name=subnet-id,Values=$SUBNET_PUB --query 'Reservations[0].Instances[0].PublicIpAddress' --output text)
+ping -c 4 http://$PUBLIC_IP 
+curl -I http://$PUBLIC_IP 
