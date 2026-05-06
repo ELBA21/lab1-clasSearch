@@ -1,6 +1,5 @@
 #!/bin/bash
-
-echo "|== Iniciando ==|"
+echo "|== iniciando ==|"
 # =================================
 # SECCION 0: DEFINICION DE VARIABLES
 # =================================
@@ -10,7 +9,7 @@ REGION="us-east-1"
 export AWS_DEFAULT_REGION=$REGION # Para asegurar la region
 
 
-
+# Le prometo que a mi me encanta poner comentarios asi con lineas de '='
 # =================================
 # SECCION 1: CREACION VPC
 # ================================
@@ -20,8 +19,8 @@ export VPC_ID=$(aws ec2 create-vpc --cidr-block $VPC_CIDR --query 'Vpc.VpcId' --
 
 
 echo ". . ." #Sin el echo no me dejaba comentar
-  # Se hace validacion, para ver si se creo (NO TENIA IDEA QUE SE PODIAN GENERAR BLOQUES IF/ELSE ACA)
-if [ -z "$VPC_ID" ]; then
+  # Se hace validacion, para ver si se creo la vpc (NO TENIA IDEA QUE SE PODIAN GENERAR BLOQUES IF/ELSE ACA)
+if [ -z "$VPC_ID" ] || [ "$VPC_ID" == "None" ]; then
     # Si VPC_ID esta vacio (osea no se creo) cierra todo
     echo "ERROR: No se pudo crear la VPC."
     exit 1
@@ -46,7 +45,7 @@ aws ec2 modify-vpc-attribute --vpc-id $VPC_ID --enable-dns-hostnames
 echo "Iniciando creacion de subnet"
 # Creamos una subnet en el mismo rango de la VPC, esta sera la subnet Publica 
 export SUBNET_PUB=$(aws ec2 create-subnet --vpc-id $VPC_ID --cidr-block 10.0.1.0/24 --availability-zone ${REGION}a --query 'Subnet.SubnetId' --output text)
-if [ -z "$SUBNET_PUB" ]; then
+if [ -z "$SUBNET_PUB" ] || [ "$SUBNET_PUB" == "None" ]; then
     echo "ERROR: No se pudo crear la SUBNET Publica."
     exit 1
 
@@ -54,13 +53,13 @@ else
     echo "OK: SUBNET Publica creada con ID: $SUBNET_PUB"
 fi
 # Aprovecho que VPC_NAME es lab1 para asignar nombres de forma mas consistente
-aws create-tags --resources $SUBNET_PUB  --tags Key=Name,Value=${VPC_NAME}-Subnet-Pub
+aws ec2 create-tags --resources $SUBNET_PUB --tags Key=Name,Value=${VPC_NAME}-Subnet-Pub
 # Asigna Ip publicas automaticamente
 aws ec2 modify-subnet-attribute --subnet-id $SUBNET_PUB --map-public-ip-on-launch
 
 # Creamos otra subnet, igual ene l mismo rango de la VPC, esta sera la privada
 export SUBNET_PRIV=$(aws ec2 create-subnet --vpc-id $VPC_ID --cidr-block 10.0.2.0/24 --availability-zone ${REGION}b --query 'Subnet.SubnetId' --output text)
-if [ -z "$SUBNET_PRIV" ]; then
+if [ -z "$SUBNET_PRIV" ] || [ "$SUBNET_PRIV" == "None" ]; then
     echo "ERROR: No se pudo crear la SUBNET Privada"
     exit 1
 
@@ -68,7 +67,7 @@ else
     echo "OK: SUBNET Privada creada con ID: $SUBNET_PRIV"
 fi
 # Lo del nombre de nuevo, pero ahora para la subnet privada
-aws create-tags --resources $SUBNET_PRIV  --tags Key=Name,Value=${VPC_NAME}-Subnet-Priv
+aws ec2 create-tags --resources $SUBNET_PRIV --tags Key=Name,Value=${VPC_NAME}-Subnet-Priv
 
 
 
@@ -76,9 +75,10 @@ aws create-tags --resources $SUBNET_PRIV  --tags Key=Name,Value=${VPC_NAME}-Subn
 # SECCION 3: CREAR IGW
 # ================================
 echo "Iniciando creacion de Internet Gateway"
+# Creamos una internet gateway, usamos wait para esperar  la respuesta
 export IGW_ID=$(aws ec2 create-internet-gateway --query 'InternetGateway.InternetGatewayId' --output text)
 
-if [ -z "$IGW_ID" ]; then
+if [ -z "$IGW_ID" ] || [ "$IGW_ID" == "None" ]; then
     echo "ERROR: No se pudo crear el Internet Gateway"
     exit 1
 
@@ -98,7 +98,7 @@ aws ec2 attach-internet-gateway --internet-gateway-id $IGW_ID --vpc-id $VPC_ID
 # ================================
 echo "Iniciando creacion de Route Tables"
 export RT_ID=$(aws ec2 create-route-table --vpc-id $VPC_ID --query 'RouteTable.RouteTableId' --output text)
-if [ -z "$RT_ID" ]; then
+if [ -z "$RT_ID" ] || [ "$RT_ID" == "None" ]; then
     echo "ERROR: No se pudo crear el Route Table"
     exit 1
 
@@ -121,7 +121,7 @@ aws ec2 associate-route-table --route-table-id $RT_ID --subnet-id $SUBNET_PUB
 # Creamos el security group'y guardamos su id
 export SG_ID=$(aws ec2 create-security-group --group-name sg-lab --description "lab SG" --vpc-id $VPC_ID --query 'GroupId' --output text)
 
-if [ -z "$SG_ID" ]; then
+if [ -z "$SG_ID" ] || [ "$SG_ID" == "None" ]; then
     echo "ERROR: No se pudo crear el Security Group"
     exit 1
 
@@ -132,14 +132,34 @@ fi
 aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 80 --cidr 0.0.0.0/0
 # Dejamos el puerto 22 disponible unicamente para nuestra Ip personal
 aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 22 --cidr $(curl -s ifconfig.me)/32 
-# Levantamos una instancia de t3.micro con Ubuntu server 26.04
-aws ec2 run-instances --image-id ami-091138d0f0d41ff90 --instance-type t3.micro --subnet-id $SUBNET_PUB --security-group-ids $SG_ID --associate-public-ip-address
 
+# En un principio la image-id estaba hardcodeada, la IA recomienda que se obtenga de forma dinamica, pq puede cambiar segun la region o el tiempo
+# Personalmente no creo que cambie, pero soy paranoico, que pasa si del viernes al domingo amazon la cambia? Pues nada, hay que prevenir
+export AMI_ID=$(aws ec2 describe-images --owners 099720109477 --filters "Name=name,Values=ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-*" --query 'sort_by(Images, &CreationDate)[-1].ImageId' --output text)
+# otra captura de erroes mas
 
+if [ -z "$AMI_ID" ] || [ "$AMI_ID" == "None" ]; then
+    echo "ERROR: No se pudo obtener la image-id"
+    exit 1
+
+else
+    echo "OK: obtenemos imagen id: $AMI_ID"
+fi
+# Levantamos una instancia de t3.micro con Ubuntu server 26.04 (teoricamente deberia ser)
+# Unico comando que hago saltar lineas pq estaba ilegible
+export INSTANCE_ID=$(aws ec2 run-instances \
+    --image-id $AMI_ID \
+    --instance-type t3.micro \
+    --subnet-id $SUBNET_PUB \
+    --security-group-ids $SG_ID \
+    --associate-public-ip-address \
+    --key-name keybenja \
+    --query 'Instances[0].InstanceId' --output text)
+
+aws ec2 wait instance-running --instance-ids $INSTANCE_ID
 
 # SECCION: VERIFICAR!!!!!
 
 # Obtenemos la IP publica de la maquina y esperamos respuesta!
 export PUBLIC_IP=$(aws ec2 describe-instances --filters Name=subnet-id,Values=$SUBNET_PUB --query 'Reservations[0].Instances[0].PublicIpAddress' --output text)
-ping -c 4 http://$PUBLIC_IP 
-curl -I http://$PUBLIC_IP 
+ping -c 4 $PUBLIC_IP
