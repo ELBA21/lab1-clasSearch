@@ -185,9 +185,10 @@ export INSTANCE_ID=$(aws ec2 run-instances \
 # Crear volumen en la misma AZ que la EC2
 # size 8 significa 8 gigas, mientras gp3 significa que se usara un SSD general
 # notar que el availability-zone es el mismo de la instancia para que se puedan conectar
+# El disco es de tamaño 9 para diferenciarlo
 echo "Generando volumen"
 export VOL_ID=$(aws ec2 create-volume \
-    --size 8 \
+    --size 9 \
     --volume-type gp3 \
     --availability-zone ${REGION}a \
     --query 'VolumeId' --output text)
@@ -220,7 +221,7 @@ ssh -i keybenja.pem ubuntu@$PUBLIC_IP << 'EOF'
     
     # vale hay que buscar el nombre que tiene el disco internamente
     # basicamente filtrmoas en la lista de discos y tomamos el que esta en la 'cabeza' jeje (son las 2am)
-    DISK=$(lsblk -dnpo NAME,SIZE | grep "8G" | awk '{print $1}' | head -n 1)
+    DISK=$(lsblk -dnpo NAME,SIZE | grep "9G" | awk '{print $1}' | head -n 1)
     echo "Disco es: $DISK"
 
 
