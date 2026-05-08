@@ -6,8 +6,9 @@ echo "|== iniciando ==|"
 VPC_CIDR="10.0.0.0/16" 
 VPC_NAME="lab1"
 REGION="us-east-1" 
-export AWS_DEFAULT_REGION=$REGION # Para asegurar la region
-
+export AWS_DEFAULT_REGION=$REGION # Para asegurar la region en cada comando
+export PAGER=cat # Para que la terminal no se cuelgue con json de confirmacion
+export AWS_PAGER=""
 
 # Le prometo que a mi me encanta poner comentarios asi con lineas de '='
 # =================================
@@ -15,11 +16,14 @@ export AWS_DEFAULT_REGION=$REGION # Para asegurar la region
 # ================================
 echo "Creando VPC con rango ${VPC_CIDR}"
 # Creamos la VPC con el CIDR indicado previamente y guardamos su ID
-export VPC_ID=$(aws ec2 create-vpc --cidr-block $VPC_CIDR --query 'Vpc.VpcId' --output text)
+export VPC_ID=$(aws ec2 create-vpc \
+    --cidr-block $VPC_CIDR \
+    --query 'Vpc.VpcId' --output text)
 
 
 echo ". . ." #Sin el echo no me dejaba comentar
-  # Se hace validacion, para ver si se creo la vpc (NO TENIA IDEA QUE SE PODIAN GENERAR BLOQUES IF/ELSE ACA)
+# Se hace validacion, para ver si se creo la vpc (NO TENIA IDEA QUE SE PODIAN GENERAR BLOQUES IF/ELSE ACA)
+# Primero -z valida  si exite el dato, mientras None, valida si aws retorno "None", lo cual tambien es un error
 if [ -z "$VPC_ID" ] || [ "$VPC_ID" == "None" ]; then
     # Si VPC_ID esta vacio (osea no se creo) cierra todo
     echo "ERROR: No se pudo crear la VPC."
@@ -30,7 +34,7 @@ else
     echo "OK: VPC creada con ID: $VPC_ID"
 fi
 
-# asignacion de nombre
+# asignacion de nombre a la vpc
 aws ec2 create-tags --resources $VPC_ID --tags Key=Name,Value=$VPC_NAME
 echo "$VPC_ID ahora se llama $VPC_NAME"
 
@@ -44,7 +48,12 @@ aws ec2 modify-vpc-attribute --vpc-id $VPC_ID --enable-dns-hostnames
 # ================================
 echo "Iniciando creacion de subnet"
 # Creamos una subnet en el mismo rango de la VPC, esta sera la subnet Publica, avilitada en la region, hardcodeamos que sea 'us-east-1a'
-export SUBNET_PUB=$(aws ec2 create-subnet --vpc-id $VPC_ID --cidr-block 10.0.1.0/24 --availability-zone ${REGION}a --query 'Subnet.SubnetId' --output text)
+export SUBNET_PUB=$(aws ec2 create-subnet\
+    --vpc-id $VPC_ID \
+    --cidr-block 10.0.1.0/24 \
+    --availability-zone ${REGION}a \
+    --query 'Subnet.SubnetId' \
+    --output text)
 # captura de id a ver si hay error, si no veo mensajes conforma pasa el tiempo me da ansiedad
 if [ -z "$SUBNET_PUB" ] || [ "$SUBNET_PUB" == "None" ]; then
     echo "ERROR: No se pudo crear la SUBNET Publica."
@@ -60,7 +69,11 @@ aws ec2 create-tags --resources $SUBNET_PUB --tags Key=Name,Value=${VPC_NAME}-Su
 aws ec2 modify-subnet-attribute --subnet-id $SUBNET_PUB --map-public-ip-on-launch
 
 # Creamos otra subnet, igual ene l mismo rango de la VPC, esta sera la privada, esta esta harcodeada para estar en la misma region, pero otra zona
-export SUBNET_PRIV=$(aws ec2 create-subnet --vpc-id $VPC_ID --cidr-block 10.0.2.0/24 --availability-zone ${REGION}b --query 'Subnet.SubnetId' --output text)
+export SUBNET_PRIV=$(aws ec2 create-subnet --vpc-id $VPC_ID \
+    --cidr-block 10.0.2.0/24 \
+    --availability-zone ${REGION}b \
+    --query 'Subnet.SubnetId' \
+    --output text)
 # comprobacion
 if [ -z "$SUBNET_PRIV" ] || [ "$SUBNET_PRIV" == "None" ]; then
     echo "ERROR: No se pudo crear la SUBNET Privada"
@@ -127,7 +140,12 @@ aws ec2 associate-route-table --route-table-id $RT_ID --subnet-id $SUBNET_PUB
 # Creamos el security group y guardamos su id
 # Le ponemos un nombre, como curiosidad al principio lo llame 'sg-lab', amazon da error automatico con eso
 # El SG es asignado a la VPC ya creada
-export SG_ID=$(aws ec2 create-security-group --group-name lab1-security-group --description "lab SG" --vpc-id $VPC_ID --query 'GroupId' --output text)
+export SG_ID=$(aws ec2 create-security-group \
+    --group-name lab1-security-group \
+    --description "lab SG" \
+    --vpc-id $VPC_ID \
+    --query 'GroupId' \
+    --output text)
 # comprobar
 if [ -z "$SG_ID" ] || [ "$SG_ID" == "None" ]; then
     echo "ERROR: No se pudo crear el Security Group"
@@ -136,9 +154,17 @@ else
     echo "OK:Security Group creado con ID: $SG_ID"
 fi
 # Abrimos el puerto HTTP (80) al internet
-aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 80 --cidr 0.0.0.0/0
+aws ec2 authorize-security-group-ingress \
+    --group-id $SG_ID \
+    --protocol tcp \
+    --port 80 \
+    --cidr 0.0.0.0/0
 # Dejamos el puerto ssh (22) disponible unicamente para nuestra Ip personal
-aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 22 --cidr $(curl -s ifconfig.me)/32 
+aws ec2 authorize-security-group-ingress \
+    --group-id $SG_ID \
+    --protocol tcp \
+    --port 22 \
+    --cidr $(curl -s ifconfig.me)/32 
 # ================================
 # SECCION 6: Instancia
 # ================================
@@ -161,10 +187,27 @@ if [ -z "$AMI_ID" ] || [ "$AMI_ID" == "None" ]; then
 else
     echo "OK: obtenemos imagen id: $AMI_ID"
 fi
+
+echo "Generando llave temporal"
+
+rm -rf ./key_profe ./key_profe.pub
+# Generamos una key privada para la session actual
+ssh-keygen -t rsa -b 4096 -f ./key_profe -N "" -q
+# Damos permisos de solo lectura a la llave
+chmod 400 key_profe
+
+# Eliminamos la llave activa (vital para ejecutar el .sh mas de una vez)
+aws ec2 delete-key-pair --key-name "key-lab-profe" 2>/dev/null
+# Cargamos la llave nueva a aws
+aws ec2 import-key-pair --key-name "key-lab-profe" --public-key-material fileb://key_profe.pub
+
+echo "OK: Llave 'key-lab-profe' lista en AWS."
+
+
+
 # Levantamos una instancia de t3.micro con Ubuntu server 24.04 (teoricamente deberia ser)
 # Aca creamos la instancia, le damos la imagen del SO que instalaremos, solicitamos que su capacidad de computo sea t3.micro
 # La conectamos a la subnet publica, adeas de conectarla al grupo de seguridad configurado antes
-# aslkdjas
 # le digo que funciona con la key ya creada y registrada en linea
 # Por ultimo comandos para ejecutar cosas DENTRO de la maquinita
 echo "Generando Instancia"
@@ -174,7 +217,7 @@ export INSTANCE_ID=$(aws ec2 run-instances \
     --subnet-id $SUBNET_PUB \
     --security-group-ids $SG_ID \
     --associate-public-ip-address \
-    --key-name keybenja \
+    --key-name "key-lab-profe" \
     --user-data '#!/bin/bash
     # Actualizamos repositorios apt, la "y" hace que se responda si automaticamente (finalmente la considero util)
     apt-get update -y
@@ -213,8 +256,12 @@ echo "Obteniendo IP publica"
 export PUBLIC_IP=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID --query 'Reservations[0].Instances[0].PublicIpAddress' --output text)
 ping -c 4 $PUBLIC_IP
 
-echo "Ejecutando ssh"
-ssh -i keybenja.pem ubuntu@$PUBLIC_IP << 'EOF'
+echo "Ejecutando ssh para inicializar instancia"
+# Iniciamos protocolo ssh usando la llave dentro del archivo
+ssh -i key_profe ubuntu@$PUBLIC_IP << 'EOF'
+    export PAGER=cat # Para que la terminal no se cuelgue con json de confirmacion
+    export AWS_PAGER=""
+
     # en un principio hardcodee un timing para esperar a apache, pero era inseguro
     # La ia me recomendo este comando mejor, consulta al sistema si existe apache en ciclos de 3 segundos
     while ! systemctl is-active --quiet apache2; do sleep 3; done
@@ -236,8 +283,6 @@ ssh -i keybenja.pem ubuntu@$PUBLIC_IP << 'EOF'
     # creamos carpeta dentro del EBS
     sudo mkdir -p /mnt/datos/www-content
 
-    # TEST BORRAR TEST
-    echo "<h1>Laboratorio</h1>" | sudo tee /mnt/datos/www-content/index.html
 
     # persistencia de discos, para que no se borren al reiniciar ni nada, aunque dudo que esto se reinicie, tipo solo servira una vez prendido
     echo "$DISK /mnt/datos ext4 defaults,nofail 0 2" | sudo tee -a /etc/fstab
@@ -250,3 +295,32 @@ ssh -i keybenja.pem ubuntu@$PUBLIC_IP << 'EOF'
     # reiniciamos apache
     sudo systemctl restart apache2
 EOF
+
+
+# ================================
+# SECCION Pagina
+# ================================
+
+# Primero copiamos los archivos desde nuestra maquina a la instancia
+echo "Copiando sitio web"
+scp -i key_profe -r ../sitio-web/* ubuntu@$PUBLIC_IP:/home/ubuntu/
+
+# Volvemos a hacer ssh a la maquina
+echo "Iniciando ssh para mover archivos de instancia a EBS"
+ssh -i key_profe ubuntu@$PUBLIC_IP  << 'EOF'
+    export PAGER=cat # Para que la terminal no se cuelgue con json de confirmacion
+    export AWS_PAGER=""
+    # Copiamos los elementos que movimos de nuestra maquina a la carpeta en el EBS
+    sudo mv /home/ubuntu/index.html /mnt/datos/www-content/
+    sudo mv /home/ubuntu/styles.css /mnt/datos/www-content/
+    sudo mv /home/ubuntu/imagenes /mnt/datos/www-content/
+
+
+    # Nos aseguramos de cambiar los permisos
+    sudo chown -R www-data:www-data /mnt/datos/www-content
+    sudo chmod -R 755 /mnt/datos/www-content
+    
+    sudo systemctl restart apache2
+    echo "pagina desplegar"
+EOF
+
