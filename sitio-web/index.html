@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuroVault</title>
+    <link rel="icon" href="imagenes/icono.ico" type="image/x-icon">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<canvas id="particles"></canvas>
+
+<header class="navbar">
+    <h1 class="logo" onclick="showSection('inicio', null)">
+        <img src="imagenes/icono.ico" alt="logo" class="logo-icon">
+        NeuroVault
+    </h1>
+    <nav>
+        <a class="nav-link" onclick="showSection('servicio', this)">Servicio</a>
+        <a class="nav-link" onclick="showSection('planes', this)">Planes</a>
+        <a class="nav-link" onclick="showSection('futuro', this)">Futuro</a>
+        <a class="nav-link" onclick="showSection('contacto', this)">Contacto</a>
+    </nav>
+</header>
+
+<section id="inicio" class="page active hero">
+    <div class="hero-content">
+        <h2>Tu pasado, ahora explorable</h2>
+        <p>Transformamos tus recuerdos en experiencias inmersivas</p>
+        <button onclick="showSection('servicio')">Explorar</button>
+    </div>
+</section>
+
+<section id="servicio" class="page section">
+    <h2>¿Qué hacemos?</h2>
+
+    <p>
+        Convertimos actividad neuronal en representaciones digitales capaces de reconstruir recuerdos como entornos tridimensionales explorables.
+        No se trata solo de visualizar el pasado, sino de volver a recorrerlo desde la forma en que existe en la mente.
+    </p>
+
+    <p>
+        La memoria no es una grabación exacta. Es dinámica, incompleta y profundamente influenciada por la emoción. Nuestro sistema no intenta replicarla
+        de forma literal, sino reconstruirla a partir de las señales cerebrales que se activan cuando un recuerdo es evocado.
+    </p>
+
+    <h2>¿Cómo funciona?</h2>
+    <p>
+        El sistema opera mediante modelos de inteligencia artificial especializados que trabajan de forma coordinada durante la recopilación, interpretación y reconstrucción de recuerdos.
+    </p>
+
+    <p>
+        Toda la actividad neuronal capturada es enviada a los centros de procesamiento de NeuroVault, donde se generan entornos tridimensionales compatibles con teléfonos, computadores y dispositivos de realidad virtual.
+    </p>
+
+    <div class="cards">
+        <div class="card" onclick="mostrarModelo('hebb', this)">
+            <h3>Modelo Hebb</h3>
+            <p>
+                El Modelo Hebb es el núcleo de reconstrucción de memoria de NeuroVault.
+
+                Su función es interpretar señales neuronales asociadas a recuerdos específicos, identificando patrones relevantes y transformándolos en estructuras espaciales navegables.
+
+                El modelo prioriza coherencia perceptiva antes que exactitud absoluta, reconstruyendo tanto detalles definidos como vacíos cognitivos presentes en la memoria original.
+            </p>
+        </div>
+
+        <div class="card" onclick="mostrarModelo('kahneman', this)">
+            <h3>Modelo Kahneman</h3>
+            <p>
+                El Modelo Kahneman supervisa continuamente el estado cognitivo del usuario.
+
+                Su objetivo es detectar cuándo una persona está evocando activamente un recuerdo, determinando cuándo iniciar y detener la captura neuronal sin intervención manual.
+
+                Esto permite que el sistema opere de forma contextual y natural.
+            </p>
+        </div>
+    </div>
+
+    <div id="modelo-info" class="modelo-info">
+
+        <div class="modelo-left">
+            <img id="modelo-img" src="" alt="">
+        </div>
+
+        <div class="modelo-right">
+            <h3 id="modelo-title"></h3>
+            <p id="modelo-desc"></p>
+        </div>
+
+    </div>
+
+    <h2>¿Qué dispositivos se utilizan?</h2>
+    <h1>Mnemo Kit</h1>
+    <p>
+        El sistema NeuroVault funciona mediante el Mnemo Kit, un conjunto portátil compuesto por dos Mnemo Nodes y una unidad central denominada Vault Core.
+    </p>
+
+    <div class="device-panel">
+
+        <div class="device-left">
+            <img src="imagenes/nodes.png" alt="">
+        </div>
+
+        <div class="device-right">
+            <h3>Mnemo Nodes</h3>
+
+            <p>
+                Dispositivos neuronales no invasivos colocados detrás de las orejas.
+                Capturan actividad cerebral y transmiten la información al Vault Core.
+            </p>
+        </div>
+
+    </div>
+
+    <div class="device-panel">
+
+        <div class="device-left">
+            <img src="imagenes/core.png" alt="">
+        </div>
+
+        <div class="device-right">
+            <h3>Vault Core</h3>
+
+            <p>
+                Unidad portátil que actúa simultáneamente como estación de almacenamiento, procesador contextual y estuche de carga para los dispositivos. Toda la información recopilada se almacena localmente en esta unidad hasta ser enviada a los centros de procesamiento de NeuroVault cuando exista conexión disponible.
+            </p>
+        </div>
+
+    </div>
+
+    <div class="device-panel">
+
+        <div class="device-left">
+            <img src="imagenes/veil1.png" alt="">
+        </div>
+
+        <div class="device-right">
+            <h3>Synaptic Veil</h3>
+
+            <p>
+                El Mnemo Kit incorpora también el Synaptic Veil, una membrana superficial de contacto diseñada para colocarse sobre la zona superior de la cabeza.
+
+                Su función es complementar la captura realizada por los Mnemo Nodes, aumentando la estabilidad y precisión de señal durante reconstrucciones complejas, extensas o emocionalmente intensas.
+            </p>
+        </div>
+
+    </div>
+
+    <p>
+        El Mnemo Kit está diseñado para ser ligero, resistente al agua y utilizable durante actividades cotidianas.
+
+        Si alguno de los Mnemo Nodes se aleja más de un metro del Vault Core, el sistema activa alertas de proximidad para evitar desconexiones o pérdida de información.
+    </p>
+
+    <h2>¿Dónde se almacenan los recuerdos?</h2>
+    <p>
+        Todos los recuerdos procesados utilizan un formato propietario exclusivo de NeuroVault.
+
+        Las experiencias generadas son encriptadas y solo pueden ejecutarse mediante el software oficial de la plataforma.
+
+        Debido a la naturaleza sensible de la información neuronal, NeuroVault controla completamente el flujo, almacenamiento y validación de los datos.
+    </p>
+
+    <h2>¿Qué ocurre si cancelo mi suscripción?</h2>
+    <p>
+        Los usuarios pueden cancelar su suscripción en cualquier momento.
+
+        Al finalizar el servicio, NeuroVault entrega un dispositivo de almacenamiento cifrado que contiene todas las experiencias procesadas hasta la fecha.
+
+        Estas experiencias continúan siendo accesibles mediante el software oficial de NeuroVault, pero dejan de almacenarse en la nube de la plataforma.
+
+        Por motivos de seguridad y privacidad, el dispositivo entregado constituye la única copia restante de los recuerdos procesados.
+    </p>
+
+    <h2>Explora los planes disponibles de NeuroVault.</h2>
+
+    <button onclick="showSection('planes')">Planes</button>
+
+</section>
+
+<section id="planes" class="page section">
+
+    <h2>Planes NeuroVault</h2>
+
+    <div class="plans-layout">
+
+        <!-- izquierda -->
+        <div class="plans-list">
+
+            <div class="plan-card"
+                 onclick="mostrarPlan('basico', this)">
+
+                <h3>Esencial</h3>
+                <p class="price">$9.99</p>
+
+            </div>
+
+            <div class="plan-card"
+                 onclick="mostrarPlan('avanzado', this)">
+
+                <h3>Avanzado</h3>
+                <p class="price">$19.99</p>
+
+            </div>
+
+            <div class="plan-card"
+                 onclick="mostrarPlan('premium', this)">
+
+                <h3>Premium</h3>
+                <p class="price">$29.99</p>
+
+            </div>
+
+        </div>
+
+        <!-- derecha -->
+        <div id="plan-info" class="plan-info">
+
+            <h2 id="plan-title">
+                Selecciona un plan
+            </h2>
+
+            <h3 id="plan-sum"></h3>
+
+            <p id="plan-desc">
+                Explora las capacidades de cada nivel de NeuroVault.
+            </p>
+
+        </div>
+
+    </div>
+
+</section>
+
+<section id="futuro" class="page section">
+
+    <h2>Futuro de NeuroVault</h2>
+
+    <p>
+        NeuroVault está evolucionando más allá de la reconstrucción de recuerdos conscientes.
+        Actualmente se desarrollan sistemas orientados a estados mentales más complejos,
+        como el sueño y la actividad cognitiva no consciente.
+    </p>
+
+    <!-- 🔹 Walker (imagen izquierda / texto derecha) -->
+    <div class="future-block">
+
+        <div class="future-img">
+            <img src="imagenes/cerebro.jpg" alt="Modelo Dr. Sueño">
+        </div>
+
+        <div class="future-text">
+
+            <h3>Modelo Walker</h3>
+
+            <p>
+                Extensión experimental del Modelo Hebb enfocada en la reconstrucción de actividad onírica, basada en el marco teórico del sueño y la consolidación de memoria propuesto por Walker. En lugar de interpretar recuerdos, analiza patrones cerebrales asociados a sueños, generando representaciones basadas en coherencia simbólica y emocional.
+
+                No busca precisión factual, sino estructura interna del sueño: imágenes, sensaciones y narrativas emergentes durante el descanso.
+            </p>
+
+            <p>
+                No busca precisión factual, sino estructura interna del sueño:
+                imágenes, sensaciones y narrativas emergentes durante el descanso.
+            </p>
+
+        </div>
+
+    </div>
+
+    <!-- 🔹 KAHNEMAN V2 (texto izquierda / imagen derecha) -->
+    <div class="future-block reverse">
+
+        <div class="future-text">
+
+            <h3>Modelo Kahneman v2</h3>
+
+            <p>
+                Evolución del sistema de monitoreo cognitivo capaz de distinguir entre
+                recuerdo consciente, actividad mental espontánea y sueño.
+            </p>
+
+            <p>
+                Permite identificar cuándo una persona está soñando además de cuándo está recordando,
+                activando automáticamente los módulos adecuados de captura neuronal.
+            </p>
+
+        </div>
+
+        <div class="future-img">
+            <img src="imagenes/suenio.jpg" alt="Modelo Kahneman v2">
+        </div>
+
+    </div>
+
+</section>
+
+<section id="contacto" class="page section">
+
+    <h2>Contacto</h2>
+
+    <p>
+        Si deseas información sobre NeuroVault, acceso al sistema o colaboración en investigación,
+        puedes contactarnos a través de los canales oficiales de la plataforma.
+    </p>
+
+    <div class="contact-panel">
+
+        <div class="contact-item">
+            <h3>Soporte general</h3>
+            <p>contacto@neurovault.ai</p>
+        </div>
+
+        <div class="contact-item">
+            <h3>Investigación y desarrollo</h3>
+            <p>research@neurovault.ai</p>
+        </div>
+
+        <div class="contact-item">
+            <h3>Seguridad de datos</h3>
+            <p>security@neurovault.ai</p>
+        </div>
+
+    </div>
+
+    <div class="social-panel">
+
+        <h3>Canales de actualización</h3>
+
+        <p>
+            El desarrollo de NeuroVault es continuo. Nuevas actualizaciones, avances en modelos de reconstrucción neuronal
+            y mejoras del sistema son comunicadas a través de nuestros canales oficiales.
+        </p>
+
+        <div class="social-links">
+            <span>NeuroVault Updates</span>
+            <span>Research Log</span>
+            <span>System Status Feed</span>
+        </div>
+
+    </div>
+
+    <p style="margin-top:40px; color:#94a3b8;">
+        Todas las solicitudes son procesadas bajo protocolos de seguridad y privacidad de datos neuronales.
+    </p>
+</section>
+
+<footer>
+    <p>© 2026 NeuroVault</p>
+</footer>
+
+<script>
+// 🔹 navegación SPA
+function showSection(id, el) {
+    document.querySelectorAll('.page').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    if(el) el.classList.add('active');
+}
+
+// 🔹 partículas + conexiones
+const canvas = document.getElementById("particles");
+const ctx = canvas.getContext("2d");
+
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+resizeCanvas();
+
+let particles = [];
+
+function initParticles() {
+    particles = [];
+    for (let i = 0; i < 80; i++) {
+        particles.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            r: Math.random() * 2 + 1,
+            dx: (Math.random() - 0.5) * 0.5,
+            dy: (Math.random() - 0.5) * 0.5
+        });
+    }
+}
+initParticles();
+
+function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // partículas
+    particles.forEach(p => {
+        p.x += p.dx;
+        p.y += p.dy;
+
+        if (p.x < 0 || p.x > canvas.width) p.dx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.dy *= -1;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(34,211,238,0.7)";
+        ctx.fill();
+    });
+
+    // 🔥 conexiones tipo red neuronal
+    for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+
+            let dx = particles[i].x - particles[j].x;
+            let dy = particles[i].y - particles[j].y;
+            let distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance < 120) {
+                ctx.beginPath();
+                ctx.moveTo(particles[i].x, particles[i].y);
+                ctx.lineTo(particles[j].x, particles[j].y);
+
+                ctx.strokeStyle = `rgba(34,211,238,${1 - distance / 120})`;
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+        }
+    }
+
+    requestAnimationFrame(animate);
+}
+animate();
+
+function mostrarModelo(modelo, el) {
+
+    document.querySelectorAll('.card')
+        .forEach(c => c.classList.remove('selected'));
+
+    el.classList.add('selected');
+
+    const info = document.getElementById('modelo-info');
+    const title = document.getElementById('modelo-title');
+    const desc = document.getElementById('modelo-desc');
+    const img = document.getElementById('modelo-img');
+
+    info.classList.add('active');
+
+    if(modelo === 'hebb') {
+
+        title.textContent = 'Modelo Hebb';
+
+        desc.textContent =
+        'Inspirado en Donald Hebb, neuropsicólogo conocido por la teoría de que las neuronas que se activan juntas fortalecen sus conexiones. El modelo intenta reconstruir patrones de memoria a partir de asociaciones neuronales.';
+
+        img.src = 'Imagenes/hebb.jpg';
+    }
+
+    if(modelo === 'kahneman') {
+
+        title.textContent = 'Modelo Kahneman';
+
+        desc.textContent =
+        'Basado en Daniel Kahneman, psicólogo y premio Nobel reconocido por sus estudios sobre percepción, toma de decisiones y procesamiento cognitivo. El sistema analiza estados mentales y contexto cognitivo.';
+
+        img.src = 'Imagenes/kahneman.jpg';
+    }
+}
+
+function mostrarPlan(plan, el) {
+
+    document.querySelectorAll('.plan-card')
+        .forEach(c => c.classList.remove('active'));
+
+    el.classList.add('active');
+
+    const title = document.getElementById('plan-title');
+    const desc = document.getElementById('plan-desc');
+    const sum = document.getElementById('plan-sum');
+
+    if(plan === 'basico') {
+
+        title.textContent = 'Plan Esencial';
+
+        sum.textContent = 'Mnemo Kit + Modelo Hebb';
+
+        desc.textContent =
+        'El Plan Esencial permite acceso al Modelo Hebb y a las capacidades fundamentales de reconstrucción de recuerdos de NeuroVault. La recopilación neuronal funciona de forma manual: el usuario decide cuándo iniciar y detener la captura mediante el Vault Core, de forma similar a una grabadora tradicional. Este plan está orientado a usuarios que desean generar reconstrucciones específicas bajo control directo, manteniendo acceso completo al procesamiento en la nube, almacenamiento seguro y visualización de experiencias tridimensionales.';
+    }
+
+    if(plan === 'avanzado') {
+
+        title.textContent = 'Plan Avanzado';
+
+        sum.textContent = 'Mnemo Kit + Modelos Hebb y Kahneman';
+
+        desc.textContent =
+        'El Plan Avanzado incorpora el Modelo Kahneman dentro del Vault Core, permitiendo monitoreo cognitivo automatizado. El sistema detecta cuándo el usuario está evocando activamente un recuerdo y coordina automáticamente el inicio y término de la captura neuronal junto al Modelo Hebb. Esto permite una experiencia mucho más natural y continua, eliminando la necesidad de iniciar manualmente cada recopilación.';
+    }
+
+    if(plan === 'premium') {
+
+        title.textContent = 'Plan Premium';
+
+        sum.textContent = 'Mnemo Kit + Modelos Hebb y Kahneman + Reconstrucción colectiva multiusuario';
+
+        desc.textContent =
+        'El Plan Premium habilita sincronización e integración de recuerdos entre múltiples usuarios compatibles. NeuroVault combina información perceptiva recopilada desde distintas perspectivas para generar reconstrucciones más amplias, detalladas y estables de un mismo evento. Esto permite recrear experiencias compartidas con mayor fidelidad espacial y contextual, generando entornos significativamente más ricos que los obtenidos mediante una única fuente neuronal.';
+    }
+}
+
+// 🔹 resize
+window.addEventListener("resize", () => {
+    resizeCanvas();
+    initParticles();
+});
+</script>
+
+</body>
+</html>
