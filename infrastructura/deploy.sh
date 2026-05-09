@@ -268,7 +268,7 @@ ssh -i key_profe ubuntu@$PUBLIC_IP << 'EOF'
     
     # vale hay que buscar el nombre que tiene el disco internamente
     # basicamente filtrmoas en la lista de discos y tomamos el que esta en la 'cabeza' jeje (son las 2am)
-    DISK=$(lsblk -dnpo NAME,SIZE | grep "7G" | awk '{print $1}' | head -n 1)
+    DISK=$(lsblk -dnpo NAME,SIZE,TYPE | grep "disk" | grep "7G" | awk '{print $1}' | head -n 1)
     echo "Disco es: $DISK"
 
 

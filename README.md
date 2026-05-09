@@ -20,5 +20,8 @@ git clone https://github.com/ELBA21/lab1-clasSearch
 cd lab1-clasSearch/infrastructura
 # Ejecutar por bash
 bash deploy.sh
-
 ```
+
+## Ip Publica
+
+- 98.92.172.216
