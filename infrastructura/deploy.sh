@@ -324,3 +324,19 @@ ssh -i key_profe ubuntu@$PUBLIC_IP  << 'EOF'
     echo "pagina desplegar"
 EOF
 
+
+
+# ================================
+# SECCION Verificaciones
+# ================================
+echo "Intancia EC2"
+aws ec2 describe-instances --instance-ids $INSTANCE_ID
+
+echo "Volumen EBS"
+ssh -i key_profe ubuntu@$PUBLIC_IP << 'EOF'
+    lsblk
+    df -h
+EOF
+
+echo "Security group"
+aws ec2 describe-security-groups --group-ids $SG_ID
